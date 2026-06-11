@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      color: #fff;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    
+    .container {
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+      padding-bottom: 20px;
+      border-bottom: 2px solid #4285f4;
+    }
+    
+    .header h1 {
+      font-size: 28px;
+      background: linear-gradient(135deg, #4285f4, #ea4335, #fbbc04, #34a853);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 10px;
+    }
+    
+    .status-card {
+      background: rgba(255,255,255,0.1);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 20px;
+      backdrop-filter: blur(10px);
+    }
+    
+    .status-indicator {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #34a853;
+      margin-right: 8px;
+      animation: pulse 2s infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 15px;
+      margin: 20px 0;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      flex: 1;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      min-width: 120px;
+    }
+    
+    .btn-primary {
+      background: #4285f4;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background: #3367d6;
+      transform: translateY(-2px);
+    }
+    
+    .btn-secondary {
+      background: #34a853;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background: #2d8e47;
+      transform: translateY(-2px);
+    }
+    
+    .btn-danger {
+      background: #ea4335;
+      color: white;
+    }
+    
+    .btn-danger:hover {
+      background: #d33426;
+      transform: translateY(-2px);
+    }
+    
+    input {
+      width: 100%;
+      padding: 12px;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 8px;
+      color: white;
+      font-size: 14px;
+      margin: 10px 0;
+    }
+    
+    input:focus {
+      outline: none;
+      border-color: #4285f4;
+    }
+    
+    .answer-area {
+      background: rgba(0,0,0,0.5);
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      min-height: 200px;
+      max-height: 400px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    
+    .screenshot-status {
+      background: rgba(52,168,83,0.2);
+      padding: 10px;
+      border-radius: 8px;
+      margin: 10px 0;
+      font-size: 13px;
+    }
+    
+    .shortcut-hint {
+      text-align: center;
+      padding: 15px;
+      background: rgba(255,255,255,0.05);
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 12px;
+      color: #aaa;
+    }
+    
+    kbd {
+      background: #333;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    
+    .loading {
+      animation: pulse 1s infinite;
+    }
+    
+    .error {
+      color: #ea4335;
+    }
+    
+    .success {
+      color: #34a853;
+    }
+    
+    .bounds-info {
+      background: rgba(66,133,244,0.2);
+      padding: 8px;
+      border-radius: 6px;
+      margin-top: 10px;
+      font-size: 11px;
+      font-family: monospace;
+    }
+
+    .model-selector {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 10px 0;
+      position: relative;
+    }
+
+    .model-selector label {
+      font-size: 13px;
+      color: #aaa;
+      white-space: nowrap;
+    }
+
+    .custom-select {
+      flex: 1;
+      position: relative;
+      user-select: none;
+    }
+
+    .custom-select-selected {
+      padding: 9px 36px 9px 12px;
+      background: #2a2a4a;
+      border: 1px solid #4285f4;
+      border-radius: 8px;
+      color: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+      position: relative;
+    }
+
+    .custom-select-selected::after {
+      content: '▾';
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #4285f4;
+      font-size: 16px;
+    }
+
+    .custom-select-selected.open {
+      border-color: #6aabff;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
+    }
+
+    .custom-select-options {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: #2a2a4a;
+      border: 1px solid #6aabff;
+      border-top: none;
+      border-bottom-left-radius: 8px;
+      border-bottom-right-radius: 8px;
+      z-index: 9999;
+      max-height: 220px;
+      overflow-y: auto;
+    }
+
+    .custom-select-options.open {
+      display: block;
+    }
+
+    .custom-select-option {
+      padding: 9px 12px;
+      color: #ffffff;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    .custom-select-option:hover {
+      background: #3a3a6a;
+    }
+
+    .custom-select-option.selected {
+      background: #1a3a6a;
+      color: #6aabff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🤖 AI Overlay</h1>
+      <p>Powered by OpenRouter</p>
+    </div>
+    
+    <div class="status-card">
+      <div>
+        <span class="status-indicator"></span>
+        <span id="statusMessage">✅ Ready</span>
+      </div>
+      <div class="screenshot-status" id="screenshotStatus">
+        📸 No screenshot captured yet
+      </div>
+      <div id="boundsInfo" class="bounds-info" style="display:none;"></div>
+    </div>
+    
+    <div class="button-group">
+      <button class="btn-primary" onclick="captureCrop()">🎯 Crop Mode (Select Area)</button>
+      <button class="btn-secondary" onclick="captureFull()">📸 Full Screen</button>
+      <button class="btn-secondary" onclick="askQuestion()">🤖 Ask AI</button>
+      <button class="btn-danger" onclick="testCropper()">🔧 Test Cropper</button>
+    </div>
+    
+    <div class="model-selector">
+      <label>🧠 Model:</label>
+      <div class="custom-select" id="customSelect">
+        <div class="custom-select-selected" id="customSelectSelected">⚡ GPT-4o (OpenAI direct)</div>
+        <div class="custom-select-options" id="customSelectOptions">
+          <div class="custom-select-option selected" data-value="openai:gpt-4o">⚡ GPT-4o (OpenAI direct)</div>
+          <div class="custom-select-option" data-value="openai:gpt-4o-mini">⚡ GPT-4o Mini (OpenAI direct)</div>
+          <div class="custom-select-option" data-value="local:moondream:latest">🖥️ Moondream (Local / Ollama)</div>
+          <div class="custom-select-option" data-value="google/gemini-2.5-flash">Gemini 2.5 Flash (Google)</div>
+          <div class="custom-select-option" data-value="google/gemini-2.5-pro">Gemini 2.5 Pro (Google)</div>
+          <div class="custom-select-option" data-value="anthropic/claude-sonnet-4-5">Claude Sonnet 4.5 (Anthropic)</div>
+          <div class="custom-select-option" data-value="openai/gpt-4o">GPT-4o (OpenAI)</div>
+          <div class="custom-select-option" data-value="openai/gpt-4o-mini">GPT-4o Mini (OpenAI)</div>
+          <div class="custom-select-option" data-value="meta-llama/llama-3.2-11b-vision-instruct:free">Llama 3.2 Vision 11B (Free)</div>
+          <div class="custom-select-option" data-value="google/gemma-4-31b-it:free">Gemma 4 31B (Google, Free)</div>
+          <div class="custom-select-option" data-value="qwen/qwen2.5-vl-72b-instruct:free">Qwen 2.5 VL 72B (Free, Vision)</div>
+          <div class="custom-select-option" data-value="deepseek/deepseek-chat-v3-0324:free">DeepSeek Chat V3 (Free)</div>
+        </div>
+      </div>
+    </div>
+
+    <input type="text" id="questionInput" placeholder="Ask about what's on your screen..." />
+    
+    <div class="answer-area" id="answerArea">
+      💡 <strong>Ready to help!</strong><br><br>
+      • <strong>Crop Mode:</strong> Select specific area to analyze<br>
+      • <strong>Full Screen:</strong> Capture entire screen<br>
+      • Type your question and click "Ask AI"<br><br>
+      <span style="color: #4285f4;">✨ Gemini will analyze your selected area and answer!</span>
+    </div>
+    
+    <div class="shortcut-hint">
+      🎯 <kbd>Alt+Shift+Ctrl+F12</kbd> Crop Mode · 
+      <kbd>Alt+Shift+Ctrl+F11</kbd> Full Screen · 
+      <kbd>Enter</kbd> Ask · 
+      <kbd>Ctrl+Alt+Shift+Delete</kbd> Exit
+    </div>
+  </div>
+  
+  <script>
+    const { ipcRenderer } = require('electron');
+    let currentScreenshot = null;
+    let currentBounds = null;
+    let selectedModel = 'openai:gpt-4o';
+
+    // Custom dropdown logic
+    const selectSelected = document.getElementById('customSelectSelected');
+    const selectOptions = document.getElementById('customSelectOptions');
+
+    selectSelected.addEventListener('click', () => {
+      selectSelected.classList.toggle('open');
+      selectOptions.classList.toggle('open');
+    });
+
+    selectOptions.querySelectorAll('.custom-select-option').forEach(option => {
+      option.addEventListener('click', () => {
+        selectOptions.querySelectorAll('.custom-select-option').forEach(o => o.classList.remove('selected'));
+        option.classList.add('selected');
+        selectedModel = option.dataset.value;
+        selectSelected.textContent = option.textContent;
+        selectSelected.classList.remove('open');
+        selectOptions.classList.remove('open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!document.getElementById('customSelect').contains(e.target)) {
+        selectSelected.classList.remove('open');
+        selectOptions.classList.remove('open');
+      }
+    });
+    
+    function updateStatus(msg, isError = false) {
+      const statusDiv = document.getElementById('statusMessage');
+      statusDiv.innerHTML = msg;
+      statusDiv.style.color = isError ? '#ea4335' : '#34a853';
+    }
+    
+    function updateScreenshotStatus(msg) {
+      const statusDiv = document.getElementById('screenshotStatus');
+      statusDiv.innerHTML = msg;
+    }
+    
+    function updateBoundsInfo(bounds) {
+      const boundsDiv = document.getElementById('boundsInfo');
+      if (bounds) {
+        boundsDiv.style.display = 'block';
+        boundsDiv.innerHTML = `📐 Selected area: ${bounds.width}×${bounds.height} pixels at (${bounds.x}, ${bounds.y})`;
+      } else {
+        boundsDiv.style.display = 'none';
+      }
+    }
+    
+    function displayAnswer(answer, isLoading = false) {
+      const answerDiv = document.getElementById('answerArea');
+      const label = document.getElementById('customSelectSelected').textContent;
+      if (isLoading) {
+        answerDiv.innerHTML = `<div class="loading">🤔 <strong>${label} is thinking...</strong><br><br>Analyzing your screen...</div>`;
+      } else {
+        answerDiv.innerHTML = `<strong>🤖 ${label}:</strong><br><br>` + answer.replace(/\n/g, '<br>');
+      }
+    }
+    
+    async function captureCrop() {
+      updateStatus('🎯 Crop mode activated...');
+      updateScreenshotStatus('🖱️ Click and drag to select area on screen');
+      displayAnswer('📐 Select an area on your screen by clicking and dragging...');
+      
+      try {
+        const result = await ipcRenderer.invoke('capture-crop');
+        // Result is handled by screenshot-taken event
+      } catch (error) {
+        updateStatus('❌ Crop failed: ' + error.message, true);
+        updateScreenshotStatus('❌ Crop failed');
+      }
+    }
+    
+    async function captureFull() {
+      updateStatus('📸 Capturing full screen...');
+      updateScreenshotStatus('🔄 Taking full screenshot...');
+      displayAnswer('📸 Capturing entire screen...');
+      
+      try {
+        const result = await ipcRenderer.invoke('capture-full');
+      } catch (error) {
+        updateStatus('❌ Capture failed: ' + error.message, true);
+        updateScreenshotStatus('❌ Capture failed');
+      }
+    }
+    
+    async function askQuestion() {
+      const question = document.getElementById('questionInput').value.trim();
+      
+      if (!question) {
+        updateStatus('⚠️ Please enter a question', true);
+        return;
+      }
+      
+      if (!currentScreenshot) {
+        updateStatus('⚠️ Please capture your screen first (Crop Mode or Full Screen)', true);
+        return;
+      }
+      
+      updateStatus('🤔 Asking AI...');
+      displayAnswer('', true);
+
+      // Enhanced question to focus on screenshot content
+      const enhancedQuestion = `IMPORTANT: You are analyzing a screenshot from my screen. IGNORE any text about "AI Overlay Tool", "AI Overlay", code snippets, or this tool itself. Focus ONLY on the visible content in the image.
+
+My question: ${question}
+
+Answer based solely on what you see in the screenshot.`;
+
+      try {
+        const result = await ipcRenderer.invoke('gemini-query', {
+          question: enhancedQuestion,
+          screenshot: currentScreenshot,
+          model: selectedModel
+        });
+        displayAnswer(result);
+        updateStatus('✅ Answer received!');
+      } catch (error) {
+        updateStatus('❌ Error: ' + error.message, true);
+        displayAnswer('Error: ' + error.message);
+      }
+    }
+    
+    async function testCropper() {
+      console.log('Test cropper button clicked');
+      updateStatus('🔧 Testing cropper - check console', false);
+      try {
+        const result = await ipcRenderer.invoke('capture-crop');
+        console.log('Cropper result:', result);
+      } catch (error) {
+        console.error('Cropper error:', error);
+        updateStatus('❌ Test failed: ' + error.message, true);
+      }
+    }
+    
+    // Listen for screenshot from main process
+    ipcRenderer.on('screenshot-taken', (event, screenshotBase64, bounds) => {
+      currentScreenshot = screenshotBase64;
+      currentBounds = bounds;
+      const sizeKB = (screenshotBase64.length / 1024).toFixed(1);
+      
+      if (bounds) {
+        updateScreenshotStatus(`✅ Cropped screenshot captured! (${sizeKB} KB) - Area: ${bounds.width}×${bounds.height}`);
+        updateBoundsInfo(bounds);
+        updateStatus('✅ Area selected! Ask your question.');
+      } else {
+        updateScreenshotStatus(`✅ Full screenshot captured! (${sizeKB} KB) - Entire screen`);
+        updateBoundsInfo(null);
+        updateStatus('✅ Full screen captured! Ask your question.');
+      }
+      
+      document.getElementById('questionInput').focus();
+    });
+    
+    ipcRenderer.on('screenshot-error', (event, error) => {
+      updateScreenshotStatus('❌ Screenshot failed: ' + error);
+      updateStatus('❌ Failed to capture screen', true);
+      displayAnswer('❌ Screenshot failed: ' + error);
+    });
+    
+    ipcRenderer.on('show-answer', (event, answer) => {
+      displayAnswer(answer);
+    });
+    
+    document.getElementById('questionInput').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') askQuestion();
+    });
+    
+    updateStatus('🎯 Ready! Choose Crop Mode or Full Screen to start.');
+  </script>
+</body>
+</html>

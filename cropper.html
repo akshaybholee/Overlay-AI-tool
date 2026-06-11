@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      user-select: none;
+    }
+    
+    body {
+      background: rgba(0, 0, 0, 0.6);
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      cursor: crosshair;
+    }
+    
+    .selection {
+      position: absolute;
+      border: 3px solid #10a37f;
+      background: rgba(16, 163, 127, 0.2);
+      pointer-events: none;
+      display: none;
+      z-index: 10001;
+    }
+    
+    .instructions {
+      position: fixed;
+      bottom: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.9);
+      color: white;
+      padding: 15px 30px;
+      border-radius: 10px;
+      font-family: monospace;
+      font-size: 16px;
+      pointer-events: none;
+      z-index: 10000;
+      border: 2px solid #10a37f;
+      white-space: nowrap;
+    }
+    
+    .instructions kbd {
+      background: #333;
+      padding: 4px 10px;
+      border-radius: 6px;
+      margin: 0 5px;
+      font-weight: bold;
+    }
+    
+    .coordinates {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      color: #10a37f;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-family: monospace;
+      font-size: 14px;
+      pointer-events: none;
+      z-index: 10000;
+    }
+  </style>
+</head>
+<body>
+  <div class="selection" id="selection"></div>
+  <div class="instructions">
+    🖱️ <kbd>CLICK + DRAG</kbd> to select area | <kbd>ESC</kbd> to cancel
+  </div>
+  <div class="coordinates" id="coordinates">Position: -- , --</div>
+  
+  <script>
+    const { ipcRenderer } = require('electron');
+    
+    let startX, startY;
+    let isSelecting = false;
+    let screenOffsetX = 0;
+    let screenOffsetY = 0;
+    const selection = document.getElementById('selection');
+    const coordsDiv = document.getElementById('coordinates');
+    
+    console.log('Cropper loaded - waiting for mouse input');
+    
+    // Get screen offset
+    ipcRenderer.on('screen-bounds', (event, bounds) => {
+      screenOffsetX = bounds.x;
+      screenOffsetY = bounds.y;
+      console.log('Screen offset:', screenOffsetX, screenOffsetY);
+    });
+    
+    function updateCoordinates(x, y) {
+      const absX = Math.round(x + screenOffsetX);
+      const absY = Math.round(y + screenOffsetY);
+      coordsDiv.innerHTML = `📍 ${absX} , ${absY}`;
+    }
+    
+    // Mouse down - start selection
+    document.addEventListener('mousedown', (e) => {
+      console.log('Mouse DOWN at:', e.clientX, e.clientY);
+      startX = e.clientX;
+      startY = e.clientY;
+      isSelecting = true;
+      selection.style.display = 'block';
+      selection.style.left = startX + 'px';
+      selection.style.top = startY + 'px';
+      selection.style.width = '0px';
+      selection.style.height = '0px';
+    });
+    
+    // Mouse move - update selection box
+    document.addEventListener('mousemove', (e) => {
+      updateCoordinates(e.clientX, e.clientY);
+      
+      if (!isSelecting) return;
+      
+      const currentX = e.clientX;
+      const currentY = e.clientY;
+      
+      const left = Math.min(startX, currentX);
+      const top = Math.min(startY, currentY);
+      const width = Math.abs(currentX - startX);
+      const height = Math.abs(currentY - startY);
+      
+      selection.style.left = left + 'px';
+      selection.style.top = top + 'px';
+      selection.style.width = width + 'px';
+      selection.style.height = height + 'px';
+    });
+    
+    // Mouse up - finish selection
+    document.addEventListener('mouseup', (e) => {
+      console.log('Mouse UP at:', e.clientX, e.clientY);
+      
+      if (!isSelecting) return;
+      isSelecting = false;
+      
+      const rect = selection.getBoundingClientRect();
+      console.log('Selection rect:', rect);
+      
+      if (rect.width > 20 && rect.height > 20) {
+        // Valid selection
+        console.log('Sending selection to main process...');
+        ipcRenderer.send('crop-selection', {
+          x: Math.round(rect.left),
+          y: Math.round(rect.top),
+          width: Math.round(rect.width),
+          height: Math.round(rect.height)
+        });
+      } else {
+        console.log('Selection too small, cancelling');
+        ipcRenderer.send('crop-cancel');
+      }
+      
+      selection.style.display = 'none';
+    });
+    
+    // ESC to cancel
+    document.addEventListener('keydown', (e) => {
+      console.log('Key pressed:', e.key);
+      if (e.key === 'Escape') {
+        ipcRenderer.send('crop-cancel');
+      }
+    });
+    
+    // Notify ready
+    ipcRenderer.send('cropper-ready');
+    console.log('Cropper ready - click and drag on screen');
+  </script>
+</body>
+</html>
